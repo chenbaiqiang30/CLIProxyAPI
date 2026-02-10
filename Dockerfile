@@ -18,18 +18,20 @@ FROM alpine:3.22.0
 
 RUN apk add --no-cache tzdata
 
-# 创建所有需要的目录,并设置权限
+# 创建目录并设置权限
 RUN mkdir -p /CLIProxyAPI && \
     mkdir -p /root/.cliproxy && \
-    chmod -R 777 /root/.cliproxy
+    chmod -R 777 /root/.cliproxy && \
+    chmod -R 777 /CLIProxyAPI
 
-# 先设置工作目录(关键修改1)
+# 先复制配置文件到绝对路径
+COPY config.yaml /CLIProxyAPI/config.yaml
+
+# 再复制程序
+COPY --from=builder /app/CLIProxyAPI /CLIProxyAPI/CLIProxyAPI
+
+# 设置工作目录
 WORKDIR /CLIProxyAPI
-
-COPY --from=builder ./app/CLIProxyAPI /CLIProxyAPI/CLIProxyAPI
-
-# 复制到当前目录,不是绝对路径(关键修改2)
-COPY config*.yaml ./config.yaml
 
 EXPOSE 8317
 
@@ -37,4 +39,31 @@ ENV TZ=Asia/Shanghai
 
 RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && echo "${TZ}" > /etc/timezone
 
+# 确保文件存在(调试用)
+RUN ls -la /CLIProxyAPI/
+
 CMD ["./CLIProxyAPI"]
+```
+
+---
+
+## 🔑 **关键修改**
+
+1. **第 26 行**:直接指定 `config.yaml`,不用通配符 `*`
+2. **第 24 行**:给 `/CLIProxyAPI` 目录也加上 777 权限
+3. **第 39 行**:添加 `ls -la` 命令,在构建时列出文件,方便我们确认文件是否真的在那里
+
+---
+
+## 📋 **提交后,请查看构建日志**
+
+当你提交后,Render 重新构建时,请找到这一行:
+```
+RUN ls -la /CLIProxyAPI/
+```
+
+它下面应该会显示:
+```
+total XX
+-rwxrwxrwx ... config.yaml
+-rwxrwxrwx ... CLIProxyAPI
