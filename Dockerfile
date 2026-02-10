@@ -22,8 +22,9 @@ RUN mkdir /CLIProxyAPI
 
 COPY --from=builder ./app/CLIProxyAPI /CLIProxyAPI/CLIProxyAPI
 
-# 万能匹配：无论你叫 config.yaml 还是 config.example.yaml，都会被当作配置文件
-COPY config*.yaml /CLIProxyAPI/config.yaml
+# 关键：手动创建一个空的配置文件，解决程序报错
+RUN echo "server:" > /CLIProxyAPI/config.yaml && \
+    echo "  port: 8317" >> /CLIProxyAPI/config.yaml
 
 WORKDIR /CLIProxyAPI
 
