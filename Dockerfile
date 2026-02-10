@@ -16,12 +16,17 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X 'main.Version=${VERSION
 
 FROM alpine:3.22.0
 
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata ca-certificates
 
 RUN mkdir -p /CLIProxyAPI && \
     mkdir -p /root/.cliproxy && \
-    chmod -R 777 /root/.cliproxy && \
-    chmod -R 777 /CLIProxyAPI
+    mkdir -p /root/.config && \
+    mkdir -p /tmp && \
+    mkdir -p /var/tmp && \
+    chmod -R 777 /root && \
+    chmod -R 777 /CLIProxyAPI && \
+    chmod -R 777 /tmp && \
+    chmod -R 777 /var/tmp
 
 RUN echo 'server:' > /CLIProxyAPI/config.yaml && \
     echo '  port: 8317' >> /CLIProxyAPI/config.yaml && \
@@ -34,9 +39,8 @@ WORKDIR /CLIProxyAPI
 EXPOSE 8317
 
 ENV TZ=Asia/Shanghai
+ENV HOME=/root
 
 RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && echo "${TZ}" > /etc/timezone
-
-RUN ls -la /CLIProxyAPI/ && cat /CLIProxyAPI/config.yaml
 
 CMD ["./CLIProxyAPI"]
