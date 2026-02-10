@@ -23,7 +23,9 @@ RUN mkdir -p /CLIProxyAPI && \
     chmod -R 777 /root/.cliproxy && \
     chmod -R 777 /CLIProxyAPI
 
-COPY config.yaml /CLIProxyAPI/config.yaml
+RUN echo 'server:' > /CLIProxyAPI/config.yaml && \
+    echo '  port: 8317' >> /CLIProxyAPI/config.yaml && \
+    echo '  host: 0.0.0.0' >> /CLIProxyAPI/config.yaml
 
 COPY --from=builder /app/CLIProxyAPI /CLIProxyAPI/CLIProxyAPI
 
@@ -35,6 +37,6 @@ ENV TZ=Asia/Shanghai
 
 RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && echo "${TZ}" > /etc/timezone
 
-RUN ls -la /CLIProxyAPI/
+RUN ls -la /CLIProxyAPI/ && cat /CLIProxyAPI/config.yaml
 
 CMD ["./CLIProxyAPI"]
