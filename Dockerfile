@@ -22,15 +22,24 @@ RUN mkdir -p /CLIProxyAPI && \
     mkdir -p /root/.cliproxy && \
     mkdir -p /root/.config && \
     mkdir -p /tmp && \
-    mkdir -p /var/tmp && \
     chmod -R 777 /root && \
     chmod -R 777 /CLIProxyAPI && \
-    chmod -R 777 /tmp && \
-    chmod -R 777 /var/tmp
+    chmod -R 777 /tmp
 
-RUN echo 'server:' > /CLIProxyAPI/config.yaml && \
-    echo '  port: 8317' >> /CLIProxyAPI/config.yaml && \
-    echo '  host: 0.0.0.0' >> /CLIProxyAPI/config.yaml
+RUN cat > /CLIProxyAPI/config.yaml << 'EOF'
+server:
+  port: 8317
+  host: 0.0.0.0
+
+proxy:
+  timeout: 300
+  
+auth:
+  enabled: false
+  
+log:
+  level: info
+EOF
 
 COPY --from=builder /app/CLIProxyAPI /CLIProxyAPI/CLIProxyAPI
 
@@ -40,6 +49,7 @@ EXPOSE 8317
 
 ENV TZ=Asia/Shanghai
 ENV HOME=/root
+ENV CLIPROXY_AUTH_DIR=/root/.cliproxy
 
 RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && echo "${TZ}" > /etc/timezone
 
