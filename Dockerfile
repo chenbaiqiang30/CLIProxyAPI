@@ -22,7 +22,8 @@ RUN mkdir /CLIProxyAPI
 
 COPY --from=builder ./app/CLIProxyAPI /CLIProxyAPI/CLIProxyAPI
 
-COPY config.example.yaml /CLIProxyAPI/config.example.yaml
+# 关键改动：这里已经改成了 config.yaml，对应你刚才改好的文件名
+COPY config.yaml /CLIProxyAPI/config.yaml
 
 WORKDIR /CLIProxyAPI
 
