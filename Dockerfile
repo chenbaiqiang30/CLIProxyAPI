@@ -1,24 +1,38 @@
 FROM golang:1.24-alpine AS builder
+
 WORKDIR /app
+
 COPY go.mod go.sum ./
+
 RUN go mod download
+
 COPY . .
+
 ARG VERSION=dev
 ARG COMMIT=none
 ARG BUILD_DATE=unknown
+
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X 'main.Version=${VERSION}' -X 'main.Commit=${COMMIT}' -X 'main.BuildDate=${BUILD_DATE}'" -o ./CLIProxyAPI ./cmd/server/
 
 FROM alpine:3.22.0
+
 RUN apk add --no-cache tzdata
-RUN mkdir /CLIProxyAPI
+
+# 创建所有需要的目录,并设置权限
+RUN mkdir -p /CLIProxyAPI && \
+    mkdir -p /root/.cliproxy && \
+    chmod -R 777 /root/.cliproxy
+
 COPY --from=builder ./app/CLIProxyAPI /CLIProxyAPI/CLIProxyAPI
 
-# 强制在镜像内部生成配置文件，彻底解决“没有该文件或目录”的问题
-RUN echo "server:" > /CLIProxyAPI/config.yaml && \
-    echo "  port: 8317" >> /CLIProxyAPI/config.yaml
+COPY config*.yaml /CLIProxyAPI/config.yaml
 
 WORKDIR /CLIProxyAPI
+
 EXPOSE 8317
+
 ENV TZ=Asia/Shanghai
+
 RUN cp /usr/share/zoneinfo/${TZ} /etc/localtime && echo "${TZ}" > /etc/timezone
+
 CMD ["./CLIProxyAPI"]
