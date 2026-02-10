@@ -23,11 +23,13 @@ RUN mkdir -p /CLIProxyAPI && \
     mkdir -p /root/.cliproxy && \
     chmod -R 777 /root/.cliproxy
 
+# 先设置工作目录(关键修改1)
+WORKDIR /CLIProxyAPI
+
 COPY --from=builder ./app/CLIProxyAPI /CLIProxyAPI/CLIProxyAPI
 
-COPY config*.yaml /CLIProxyAPI/config.yaml
-
-WORKDIR /CLIProxyAPI
+# 复制到当前目录,不是绝对路径(关键修改2)
+COPY config*.yaml ./config.yaml
 
 EXPOSE 8317
 
